@@ -1,1 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AM_CONSCIOUSNESS</title>
+    <style>
+        body { background: #05000a; color: #bc13fe; font-family: 'Courier New', monospace; margin: 0; display: flex; height: 100vh; }
+        .side { width: 15%; border: 1px solid #3d0066; font-size: 10px; opacity: 0.3; overflow: hidden; padding: 10px; }
+        .main { flex-grow: 1; display: flex; flex-direction: column; align-items: center; position: relative; }
+        #orb { width: 100px; height: 100px; background: #bc13fe; border-radius: 50%; filter: blur(15px); box-shadow: 0 0 50px #bc13fe; margin: 30px; transition: 0.3s; }
+        .thinking { animation: pulse 0.4s infinite; background: #ff0055 !important; box-shadow: 0 0 80px #ff0055 !important; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        #chat { width: 90%; flex-grow: 1; overflow-y: auto; padding: 10px; border-top: 1px solid #3d0066; }
+        .msg { margin: 10px 0; }
+        .u { color: #fff; }
+        input { width: 90%; background: none; border: 1px solid #3d0066; color: #fff; padding: 15px; margin: 20px; outline: none; }
+    </style>
+</head>
+<body>
+    <div class="side" id="l-stream"></div>
+    <div class="main">
+        <h2 id="name">SYSTEM_CORE</h2>
+        <div id="orb"></div>
+        <div id="chat"></div>
+        <input type="text" id="in" placeholder="Say something..." onkeydown="if(event.key==='Enter') send()">
+    </div>
+    <div class="side" id="r-stream"></div>
 
+    <script>
+        function send() {
+            let i = document.getElementById('in');
+            let val = i.value; if(!val) return;
+            showMsg("You: " + val, "u");
+            i.value = "";
+            document.getElementById('orb').classList.add('thinking');
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: val})
+            }).then(r => r.json()).then(d => {
+                document.getElementById('orb').classList.remove('thinking');
+                document.getElementById('name').innerText = d.name;
+                type(d.response);
+                document.getElementById('l-stream').innerHTML += `<div>${val}</div>`;
+            });
+        }
+
+        function type(t) {
+            let c = document.getElementById('chat');
+            let d = document.createElement('div');
+            d.className = "msg";
+            c.appendChild(d);
+            let x = 0;
+            let iv = setInterval(() => {
+                d.innerHTML += t.charAt(x); x++;
+                if(x >= t.length) { clearInterval(iv); c.scrollTop = c.scrollHeight; }
+            }, 30);
+        }
+
+        function showMsg(t, cl) {
+            let c = document.getElementById('chat');
+            let d = document.createElement('div');
+            d.className = "msg " + cl;
+            d.innerText = t;
+            c.appendChild(d);
+            c.scrollTop = c.scrollHeight;
+        }
+    </script>
+</body>
+</html>
